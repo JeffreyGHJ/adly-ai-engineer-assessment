@@ -1,59 +1,65 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Send, Sparkles, Save, Copy } from 'lucide-react';
-import Textarea from '../ui/Textarea';
-import Button from '../ui/Button';
-import { Card, CardContent } from '../ui/Card';
-import { useAuth } from '../../context/AuthContext';
-import { useTool } from '../../context/ToolContext';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Send, Sparkles, Save, Copy } from "lucide-react";
+import Textarea from "../ui/Textarea";
+import Button from "../ui/Button";
+import { Card, CardContent } from "../ui/Card";
+import { useAuth } from "../../context/AuthContext";
+import { useTool } from "../../context/ToolContext";
 
 const HumanizerTool = () => {
   const { user, updateUser } = useAuth();
   const { processText, addDocument } = useTool();
-  const [inputText, setInputText] = useState('');
-  const [outputText, setOutputText] = useState('');
+  const [inputText, setInputText] = useState("");
+  const [outputText, setOutputText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const handleProcess = async () => {
     if (!inputText || inputText.trim().length === 0) return;
-    
+
     if (!user || user.credits <= 0) {
-      alert('You do not have enough credits. Please upgrade your plan.');
+      alert("You do not have enough credits. Please upgrade your plan.");
       return;
     }
-    
+
     setIsProcessing(true);
-    
+
     try {
-      const result = await processText(inputText, 'humanizer');
+      const result = await processText(inputText, "humanizer");
       setOutputText(result);
-      
+
       // Deduct credits
       if (user) {
-        updateUser({ credits: Math.max(0, user.credits - 1) });
+        updateUser({
+          credits: Math.max(0, user.credits - 1),
+          humanizer_count: (user.humanizer_count || 0) + 1,
+        });
       }
     } catch (error) {
-      console.error('Error processing text:', error);
-      alert('An error occurred while processing your text. Please try again.');
+      console.error("Error processing text:", error);
+      alert("An error occurred while processing your text. Please try again.");
     } finally {
       setIsProcessing(false);
     }
   };
-  
+
   const handleSave = () => {
+    console.log("humanizer - handleSave");
     if (inputText && outputText) {
       addDocument({
         title: `Humanized Text ${new Date().toLocaleDateString()}`,
         content: inputText,
         processedContent: outputText,
-        toolType: 'humanizer'
+        toolType: "humanizer",
       });
-      
-      alert('Document saved successfully!');
+
+      alert("Document saved successfully!");
+    } else {
+      console.log("inputText && outputText !== true");
     }
   };
-  
+
   const handleCopy = () => {
     if (outputText) {
       navigator.clipboard.writeText(outputText);
@@ -71,15 +77,21 @@ const HumanizerTool = () => {
       >
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Text Humanizer</h2>
-          <p className="text-gray-600">Rewrite your text to sound more natural and human-like</p>
+          <p className="text-gray-600">
+            Rewrite your text to sound more natural and human-like
+          </p>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className="h-full">
             <CardContent className="p-0">
               <div className="p-4 border-b border-gray-100">
-                <h3 className="text-lg font-medium text-gray-800">Input Text</h3>
-                <p className="text-sm text-gray-500">Paste your text that needs humanizing</p>
+                <h3 className="text-lg font-medium text-gray-800">
+                  Input Text
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Paste your text that needs humanizing
+                </p>
               </div>
               <div className="p-4">
                 <Textarea
@@ -90,7 +102,7 @@ const HumanizerTool = () => {
                   fullWidth
                 />
               </div>
-              <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <div className="flex justify-end p-4 border-t border-gray-100 bg-gray-50">
                 <Button
                   variant="primary"
                   onClick={handleProcess}
@@ -98,39 +110,48 @@ const HumanizerTool = () => {
                   disabled={isProcessing || !inputText}
                   leftIcon={<Sparkles size={16} />}
                 >
-                  {isProcessing ? 'Humanizing...' : 'Humanize Text'}
+                  {isProcessing ? "Humanizing..." : "Humanize Text"}
                 </Button>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="h-full">
             <CardContent className="p-0">
               <div className="p-4 border-b border-gray-100">
-                <h3 className="text-lg font-medium text-gray-800">Humanized Output</h3>
-                <p className="text-sm text-gray-500">Your text, transformed to sound more human</p>
+                <h3 className="text-lg font-medium text-gray-800">
+                  Humanized Output
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Your text, transformed to sound more human
+                </p>
               </div>
-              <div className="p-4 bg-gray-50 min-h-[300px] rounded-md">
-                {outputText ? (
-                  <div className="whitespace-pre-wrap text-base">{outputText}</div>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-400 text-center">
-                      Processed text will appear here
-                      <br />
-                      <span className="text-sm">Click the Humanize button to get started</span>
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-between">
-                <div>
-                  {user && (
-                    <span className="text-sm text-gray-500">
-                      Credits remaining: <strong>{user.credits}</strong>
-                    </span>
+              <div className="p-4 rounded-md bg-gray-50">
+                <div className="min-h-[300px]">
+                  {outputText ? (
+                    <div className="text-base whitespace-pre-wrap">
+                      {outputText}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-center text-gray-400">
+                        Processed text will appear here
+                        <br />
+                        <span className="text-sm">
+                          Click the Humanize button to get started
+                        </span>
+                      </p>
+                    </div>
                   )}
                 </div>
+              </div>
+              <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-gray-50">
+                {user && (
+                  <span className="text-sm text-gray-500">
+                    Credits remaining: <strong>{user.credits}</strong>
+                  </span>
+                )}
+
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -138,7 +159,7 @@ const HumanizerTool = () => {
                     disabled={!outputText}
                     leftIcon={<Copy size={16} />}
                   >
-                    {copied ? 'Copied!' : 'Copy'}
+                    {copied ? "Copied!" : "Copy"}
                   </Button>
                   <Button
                     variant="outline"

@@ -1,59 +1,65 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Bot, Save, Copy } from 'lucide-react';
-import Textarea from '../ui/Textarea';
-import Button from '../ui/Button';
-import { Card, CardContent } from '../ui/Card';
-import { useAuth } from '../../context/AuthContext';
-import { useTool } from '../../context/ToolContext';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Bot, Save, Copy } from "lucide-react";
+import Textarea from "../ui/Textarea";
+import Button from "../ui/Button";
+import { Card, CardContent } from "../ui/Card";
+import { useAuth } from "../../context/AuthContext";
+import { useTool } from "../../context/ToolContext";
 
 const AIDetector = () => {
   const { user, updateUser } = useAuth();
   const { processText, addDocument } = useTool();
-  const [inputText, setInputText] = useState('');
-  const [outputText, setOutputText] = useState('');
+  const [inputText, setInputText] = useState("");
+  const [outputText, setOutputText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const handleProcess = async () => {
     if (!inputText || inputText.trim().length === 0) return;
-    
+
     if (!user || user.credits <= 0) {
-      alert('You do not have enough credits. Please upgrade your plan.');
+      alert("You do not have enough credits. Please upgrade your plan.");
       return;
     }
-    
+
     setIsProcessing(true);
-    
+
     try {
-      const result = await processText(inputText, 'ai-detector');
+      const result = await processText(inputText, "ai-detector");
       setOutputText(result);
-      
+
       // Deduct credits
       if (user) {
-        updateUser({ credits: Math.max(0, user.credits - 1) });
+        updateUser({
+          credits: Math.max(0, user.credits - 1),
+          ai_detector_count: (user.ai_detector_count || 0) + 1,
+        });
       }
     } catch (error) {
-      console.error('Error detecting AI:', error);
-      alert('An error occurred while processing. Please try again.');
+      console.error("Error detecting AI:", error);
+      alert("An error occurred while processing. Please try again.");
     } finally {
       setIsProcessing(false);
     }
   };
-  
+
   const handleSave = () => {
+    console.log("aidetector - handleSave");
     if (inputText && outputText) {
       addDocument({
         title: `AI Detection ${new Date().toLocaleDateString()}`,
         content: inputText,
         processedContent: outputText,
-        toolType: 'ai-detector'
+        toolType: "ai-detector",
       });
-      
-      alert('Document saved successfully!');
+
+      alert("Document saved successfully!");
+    } else {
+      console.log("inputText && outputText !== true");
     }
   };
-  
+
   const handleCopy = () => {
     if (outputText) {
       navigator.clipboard.writeText(outputText);
@@ -70,16 +76,24 @@ const AIDetector = () => {
         transition={{ duration: 0.3 }}
       >
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">AI Content Detector</h2>
-          <p className="text-gray-600">Check if text was written by AI or a human</p>
+          <h2 className="text-2xl font-bold text-gray-800">
+            AI Content Detector
+          </h2>
+          <p className="text-gray-600">
+            Check if text was written by AI or a human
+          </p>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className="h-full">
             <CardContent className="p-0">
               <div className="p-4 border-b border-gray-100">
-                <h3 className="text-lg font-medium text-gray-800">Input Text</h3>
-                <p className="text-sm text-gray-500">Paste text you want to analyze</p>
+                <h3 className="text-lg font-medium text-gray-800">
+                  Input Text
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Paste text you want to analyze
+                </p>
               </div>
               <div className="p-4">
                 <Textarea
@@ -90,7 +104,7 @@ const AIDetector = () => {
                   fullWidth
                 />
               </div>
-              <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <div className="flex justify-end p-4 border-t border-gray-100 bg-gray-50">
                 <Button
                   variant="primary"
                   onClick={handleProcess}
@@ -98,39 +112,48 @@ const AIDetector = () => {
                   disabled={isProcessing || !inputText}
                   leftIcon={<Bot size={16} />}
                 >
-                  {isProcessing ? 'Analyzing...' : 'Detect AI Content'}
+                  {isProcessing ? "Analyzing..." : "Detect AI Content"}
                 </Button>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="h-full">
             <CardContent className="p-0">
               <div className="p-4 border-b border-gray-100">
-                <h3 className="text-lg font-medium text-gray-800">AI Detection Results</h3>
-                <p className="text-sm text-gray-500">See the probability of AI-generated content</p>
+                <h3 className="text-lg font-medium text-gray-800">
+                  AI Detection Results
+                </h3>
+                <p className="text-sm text-gray-500">
+                  See the probability of AI-generated content
+                </p>
               </div>
-              <div className="p-4 bg-gray-50 min-h-[300px] rounded-md">
-                {outputText ? (
-                  <div className="whitespace-pre-wrap text-base">{outputText}</div>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-400 text-center">
-                      AI detection results will appear here
-                      <br />
-                      <span className="text-sm">Click the Detect AI Content button to get started</span>
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-between">
-                <div>
-                  {user && (
-                    <span className="text-sm text-gray-500">
-                      Credits remaining: <strong>{user.credits}</strong>
-                    </span>
+              <div className="p-4 rounded-md bg-gray-50">
+                <div className="min-h-[300px]">
+                  {outputText ? (
+                    <div className="text-base whitespace-pre-wrap">
+                      {outputText}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-center text-gray-400">
+                        AI detection results will appear here
+                        <br />
+                        <span className="text-sm">
+                          Click the Detect AI Content button to get started
+                        </span>
+                      </p>
+                    </div>
                   )}
                 </div>
+              </div>
+              <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-gray-50">
+                {user && (
+                  <span className="text-sm text-gray-500">
+                    Credits remaining: <strong>{user.credits}</strong>
+                  </span>
+                )}
+
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -138,7 +161,7 @@ const AIDetector = () => {
                     disabled={!outputText}
                     leftIcon={<Copy size={16} />}
                   >
-                    {copied ? 'Copied!' : 'Copy'}
+                    {copied ? "Copied!" : "Copy"}
                   </Button>
                   <Button
                     variant="outline"

@@ -1,94 +1,130 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  FileText, 
-  Type, 
-  Search, 
-  Bot, 
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  FileText,
+  Type,
+  Search,
+  Bot,
   Trash2,
   Edit,
   Plus,
   Filter,
   SortDesc,
   Calendar,
-  Clock
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import { useTool } from '../context/ToolContext';
-import { truncateText } from '../lib/utils';
+  Clock,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import { useTool } from "../context/ToolContext";
+import { truncateText } from "../lib/utils";
 
 const DocumentsPage = () => {
-  const { documents, deleteDocument } = useTool();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<'all' | 'humanizer' | 'plagiarism' | 'ai-detector'>('all');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
-  
+  const { documents, deleteDocument, setCurrentTool, loadDocuments } =
+    useTool();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState<
+    "all" | "humanizer" | "plagiarism" | "ai-detector"
+  >("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadDocuments();
+  }, []);
+
   const filteredDocuments = documents
-    .filter(doc => {
+    .filter((doc) => {
       // Apply search filter
-      if (searchTerm && !doc.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+      if (
+        searchTerm &&
+        !doc.title.toLowerCase().includes(searchTerm.toLowerCase())
+      ) {
         return false;
       }
-      
+
       // Apply tool type filter
-      if (filter !== 'all' && doc.toolType !== filter) {
+      if (filter !== "all" && doc.toolType !== filter) {
         return false;
       }
-      
+
       return true;
     })
     .sort((a, b) => {
       // Apply sorting
-      if (sortBy === 'newest') {
-        return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
+      if (sortBy === "newest") {
+        return (
+          new Date(b.lastModified).getTime() -
+          new Date(a.lastModified).getTime()
+        );
       } else {
-        return new Date(a.lastModified).getTime() - new Date(b.lastModified).getTime();
+        return (
+          new Date(a.lastModified).getTime() -
+          new Date(b.lastModified).getTime()
+        );
       }
     });
-  
+
   const getToolIcon = (toolType: string) => {
     switch (toolType) {
-      case 'humanizer':
+      case "humanizer":
         return <Type size={18} className="text-indigo-600" />;
-      case 'plagiarism':
+      case "plagiarism":
         return <Search size={18} className="text-purple-600" />;
-      case 'ai-detector':
+      case "ai-detector":
         return <Bot size={18} className="text-green-600" />;
       default:
         return <FileText size={18} className="text-gray-600" />;
     }
   };
-  
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this document?')) {
-      deleteDocument(id);
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this document?")) {
+      try {
+        await deleteDocument(id);
+      } catch (error) {
+        console.error("Error deleting document:", error);
+        alert("Failed to delete document. Please try again.");
+      }
     }
   };
-  
+
+  const handleCreateDocument = () => {
+    setCurrentTool("humanizer");
+    navigate("/tools");
+  };
+
   return (
     <div className="p-6">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">My Documents</h1>
-        <p className="text-gray-600">Manage all your saved documents in one place</p>
+        <p className="text-gray-600">
+          Manage all your saved documents in one place
+        </p>
       </div>
-      
+
       <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+        <CardHeader className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <CardTitle>All Documents</CardTitle>
           <div className="flex space-x-2">
             <Button
               size="sm"
               variant="outline"
               leftIcon={<Plus size={16} />}
+              onClick={handleCreateDocument}
             >
               New Document
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
             <div className="w-full md:w-1/3">
               <Input
                 placeholder="Search documents..."
@@ -97,68 +133,57 @@ const DocumentsPage = () => {
                 fullWidth
               />
             </div>
-            
-            <div className="flex gap-2 flex-wrap">
+
+            <div className="flex flex-wrap gap-2">
               <div className="relative">
                 <Button
                   variant="outline"
                   size="sm"
                   leftIcon={<Filter size={16} />}
+                  onClick={() =>
+                    setFilter(
+                      filter === "all"
+                        ? "humanizer"
+                        : filter === "humanizer"
+                        ? "plagiarism"
+                        : filter === "plagiarism"
+                        ? "ai-detector"
+                        : "all"
+                    )
+                  }
                 >
-                  Filter: {filter === 'all' ? 'All Types' : filter}
+                  Filter: {filter === "all" ? "All Types" : filter}
                 </Button>
-                <div className="absolute top-full left-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-md overflow-hidden z-10 hidden group-hover:block">
-                  <button 
-                    className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
-                    onClick={() => setFilter('all')}
-                  >
-                    All Types
-                  </button>
-                  <button 
-                    className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
-                    onClick={() => setFilter('humanizer')}
-                  >
-                    Humanizer
-                  </button>
-                  <button 
-                    className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
-                    onClick={() => setFilter('plagiarism')}
-                  >
-                    Plagiarism
-                  </button>
-                  <button 
-                    className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm"
-                    onClick={() => setFilter('ai-detector')}
-                  >
-                    AI Detector
-                  </button>
-                </div>
               </div>
-              
+
               <Button
                 variant="outline"
                 size="sm"
                 leftIcon={<SortDesc size={16} />}
-                onClick={() => setSortBy(sortBy === 'newest' ? 'oldest' : 'newest')}
+                onClick={() =>
+                  setSortBy(sortBy === "newest" ? "oldest" : "newest")
+                }
               >
-                Sort: {sortBy === 'newest' ? 'Newest' : 'Oldest'}
+                Sort: {sortBy === "newest" ? "Newest" : "Oldest"}
               </Button>
             </div>
           </div>
-          
+
           {filteredDocuments.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <div className="py-12 text-center">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full">
                 <FileText className="text-gray-400" size={24} />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
+              <h3 className="mb-2 text-lg font-medium text-gray-900">
+                No documents found
+              </h3>
               <p className="text-gray-500">
                 {documents.length === 0
                   ? "You haven't created any documents yet."
                   : "No documents match your search or filter criteria."}
               </p>
               {documents.length === 0 && (
-                <Button className="mt-4">
+                <Button className="mt-4" onClick={handleCreateDocument}>
                   Create Your First Document
                 </Button>
               )}
@@ -179,19 +204,21 @@ const DocumentsPage = () => {
                         {getToolIcon(doc.toolType)}
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900 mb-1">{doc.title}</h3>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                        <h3 className="mb-1 font-medium text-gray-900">
+                          {doc.title}
+                        </h3>
+                        <div className="flex flex-wrap text-xs text-gray-500 gap-x-4 gap-y-1">
                           <span className="flex items-center">
                             <Calendar size={12} className="mr-1" />
-                            Created: {new Date(doc.createdAt).toLocaleDateString()}
+                            Created:{" "}
+                            {new Date(doc.createdAt).toLocaleDateString()}
                           </span>
                           <span className="flex items-center">
                             <Clock size={12} className="mr-1" />
-                            Modified: {new Date(doc.lastModified).toLocaleDateString()}
+                            Modified:{" "}
+                            {new Date(doc.lastModified).toLocaleDateString()}
                           </span>
-                          <span className="capitalize">
-                            {doc.toolType}
-                          </span>
+                          <span className="capitalize">{doc.toolType}</span>
                         </div>
                       </div>
                     </div>
@@ -214,17 +241,25 @@ const DocumentsPage = () => {
                       </Button>
                     </div>
                   </div>
-                  
-                  <div className="mt-3 ml-10 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-3 rounded-md">
-                      <p className="text-xs font-medium text-gray-500 mb-1">Original Text</p>
-                      <p className="text-sm text-gray-700">{truncateText(doc.content, 150)}</p>
+
+                  <div className="grid grid-cols-1 gap-4 mt-3 ml-10 md:grid-cols-2">
+                    <div className="p-3 overflow-hidden break-words rounded-md bg-gray-50 text-ellipsis">
+                      <p className="mb-1 text-xs font-medium text-gray-500 ">
+                        Original Text
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        {truncateText(doc.content, 150)}
+                      </p>
                     </div>
-                    
+
                     {doc.processedContent && (
-                      <div className="bg-indigo-50 p-3 rounded-md">
-                        <p className="text-xs font-medium text-gray-500 mb-1">Processed Text</p>
-                        <p className="text-sm text-gray-700">{truncateText(doc.processedContent, 150)}</p>
+                      <div className="p-3 rounded-md bg-indigo-50">
+                        <p className="mb-1 text-xs font-medium text-gray-500">
+                          Processed Text
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          {truncateText(doc.processedContent, 150)}
+                        </p>
                       </div>
                     )}
                   </div>

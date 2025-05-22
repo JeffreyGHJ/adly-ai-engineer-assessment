@@ -60,7 +60,7 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<HomePage />} />
+
       <Route
         path="/login"
         element={
@@ -77,10 +77,10 @@ function AppRoutes() {
           </AuthRoute>
         }
       />
-      <Route path="/pricing" element={<PricingPage />} />
 
       {/* Protected routes inside MainLayout */}
       <Route element={<MainLayout />}>
+        <Route path="/" element={<HomePage />} />
         <Route
           path="/dashboard"
           element={
@@ -113,6 +113,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Route>
 
