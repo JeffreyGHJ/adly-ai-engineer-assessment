@@ -26,8 +26,13 @@ import { useTool } from "../context/ToolContext";
 import { truncateText } from "../lib/utils";
 
 const DocumentsPage = () => {
-  const { documents, deleteDocument, setCurrentTool, loadDocuments, setCurrentDocument } =
-    useTool();
+  const {
+    documents,
+    deleteDocument,
+    setCurrentTool,
+    loadDocuments,
+    setCurrentDocument,
+  } = useTool();
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<
     "all" | "humanizer" | "plagiarism" | "ai-detector"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Bot, Save, Copy } from "lucide-react";
 import Textarea from "../ui/Textarea";
@@ -9,9 +9,17 @@ import { useTool } from "../../context/ToolContext";
 
 const AIDetector = () => {
   const { user, updateUser } = useAuth();
-  const { processText, addDocument } = useTool();
-  const [inputText, setInputText] = useState("");
-  const [outputText, setOutputText] = useState("");
+  const { processText, addDocument, updateDocument, currentDocument } =
+    useTool();
+  const [inputText, setInputText] = useState(
+    currentDocument ? currentDocument.content : ""
+  );
+  const [outputText, setOutputText] = useState(
+    currentDocument ? currentDocument.processedContent : ""
+  );
+  const [title, setTitle] = useState(
+    currentDocument ? currentDocument.title : ""
+  );
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -46,9 +54,19 @@ const AIDetector = () => {
 
   const handleSave = () => {
     console.log("aidetector - handleSave");
-    if (inputText && outputText) {
+    if (currentDocument) {
+      updateDocument(currentDocument.id.toString(), {
+        title: currentDocument.title === title ? currentDocument.title : title,
+        content: inputText,
+        processedContent: outputText,
+        toolType: "ai-detector",
+      });
+      alert("Document updated successfully!");
+    } else if (inputText && outputText) {
       addDocument({
-        title: `AI Detection ${new Date().toLocaleDateString()}`,
+        title: title
+          ? title
+          : `AI Detection ${new Date().toLocaleDateString()}`,
         content: inputText,
         processedContent: outputText,
         toolType: "ai-detector",
@@ -68,6 +86,10 @@ const AIDetector = () => {
     }
   };
 
+  useEffect(() => {
+    if (currentDocument) setTitle(currentDocument.title);
+  }, [currentDocument]);
+
   return (
     <div className="p-4 md:p-6">
       <motion.div
@@ -83,6 +105,18 @@ const AIDetector = () => {
             Check if text was written by AI or a human
           </p>
         </div>
+
+        {title && (
+          <div className="flex items-center mb-6 ml-4">
+            <h2 className="mr-3 text-xl font-bold text-gray-800">Title:</h2>
+            <input
+              type="text"
+              value={title}
+              className="px-2 py-1 text-gray-600 border rounded-md bg-slate-100 w-72"
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className="h-full">

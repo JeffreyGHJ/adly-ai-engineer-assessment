@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
@@ -20,6 +20,7 @@ import Button from "../ui/Button";
 import { useAuth } from "../../context/AuthContext";
 import { useTool } from "../../context/ToolContext";
 import { cn } from "../../lib/utils";
+import ToolNavItem from "../ui/ToolNavItem";
 
 interface NavItemProps {
   to: string;
@@ -48,40 +49,15 @@ const NavItem = ({ to, icon, label, isExpanded, onClick }: NavItemProps) => (
   </NavLink>
 );
 
-const ToolNavItem = ({
-  toolType,
-  icon,
-  label,
-  isExpanded,
-  isActive,
-  onClick,
-}: {
-  toolType: "humanizer" | "plagiarism" | "ai-detector";
-  icon: React.ReactNode;
-  label: string;
-  isExpanded: boolean;
-  isActive: boolean;
-  onClick: () => void;
-}) => (
-  <button
-    className={cn(
-      "flex items-center gap-3 m-auto size-10 justify-center rounded-md transition-colors w-full text-left",
-      isActive
-        ? "bg-indigo-50 text-indigo-700"
-        : "text-gray-600 hover:bg-gray-100",
-      isExpanded ? "justify-start pl-3" : "justify-center"
-    )}
-    onClick={onClick}
-  >
-    {icon}
-    {isExpanded && <span className="font-medium">{label}</span>}
-  </button>
-);
-
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const { logout } = useAuth();
-  const { currentTool, setCurrentTool } = useTool();
+  const {
+    currentTool,
+    setCurrentTool,
+    setCurrentDocument,
+    setSidebarExpanded,
+  } = useTool();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -93,6 +69,7 @@ const Sidebar = () => {
     toolType: "humanizer" | "plagiarism" | "ai-detector"
   ) => {
     setCurrentTool(toolType);
+    setCurrentDocument(null);
     navigate("/tools");
   };
 
@@ -101,6 +78,10 @@ const Sidebar = () => {
     navigate("/");
   };
 
+  useEffect(() => {
+    setSidebarExpanded(isExpanded);
+  }, [isExpanded, setSidebarExpanded]);
+
   return (
     <motion.aside
       className="flex flex-col h-screen bg-white border-r border-gray-200"
@@ -108,15 +89,18 @@ const Sidebar = () => {
       animate={{ width: isExpanded ? 250 : 72 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <div className="flex items-center justify-between px-4 py-6 border-b border-gray-100">
-        {isExpanded ? (
-          <h1 className="text-xl font-bold text-indigo-600">TextPerfect</h1>
-        ) : (
-          <span className="text-xl font-bold text-indigo-600">TP</span>
+      <div className="flex items-center justify-between h-16 px-4 py-4 border-b border-gray-100">
+        {isExpanded && (
+          <Link to="/" className="mr-8 text-2xl font-bold text-indigo-600">
+            TextPerfect
+          </Link>
         )}
         <button
           onClick={toggleSidebar}
-          className="p-1 text-gray-500 rounded-md hover:bg-gray-100"
+          className={cn(
+            "p-1 text-gray-500 rounded-md hover:bg-gray-100",
+            !isExpanded && "mx-auto"
+          )}
         >
           {isExpanded ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -191,7 +175,7 @@ const Sidebar = () => {
           )}
           <NavItem
             to="/usage"
-            icon={<BarChart2 size={20} className="flex-shrink-0"/>}
+            icon={<BarChart2 size={20} className="flex-shrink-0" />}
             label="Usage"
             isExpanded={isExpanded}
           />
@@ -239,4 +223,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar
+export default Sidebar;

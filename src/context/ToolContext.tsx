@@ -25,6 +25,8 @@ interface ToolContextType {
   deleteDocument: (id: string) => Promise<void>;
   processText: (text: string, tool: ToolType) => Promise<string>;
   loadDocuments: () => Promise<void>;
+  sidebarExpanded: boolean;
+  setSidebarExpanded: (expanded: boolean) => void;
 }
 
 const ToolContext = createContext<ToolContextType | undefined>(undefined);
@@ -33,6 +35,7 @@ export function ToolProvider({ children }: { children: React.ReactNode }) {
   const [currentTool, setCurrentTool] = useState<ToolType>("humanizer");
   const [documents, setDocuments] = useState<Document[]>([]);
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -52,15 +55,18 @@ export function ToolProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      const formattedDocuments = data.map((doc) => ({
-        id: doc.id,
-        title: doc.title,
-        content: doc.content,
-        processedContent: doc.processed_content,
-        toolType: doc.tool_type as ToolType,
-        createdAt: new Date(doc.created_at),
-        lastModified: new Date(doc.updated_at),
-      }));
+      const formattedDocuments = data.map((doc) => {
+        // console.log(doc);
+        return {
+          id: doc.id,
+          title: doc.title,
+          content: doc.content,
+          processedContent: doc.processed_content,
+          toolType: doc.tool_type as ToolType,
+          createdAt: new Date(doc.created_at),
+          lastModified: new Date(doc.updated_at),
+        };
+      });
 
       setDocuments(formattedDocuments);
     } catch (error) {
@@ -100,6 +106,8 @@ export function ToolProvider({ children }: { children: React.ReactNode }) {
     };
 
     setDocuments((prev) => [newDocument, ...prev]);
+    console.log("Setting current document: ", newDocument);
+    setCurrentDocument(newDocument);
     return newDocument;
   };
 
@@ -220,6 +228,8 @@ export function ToolProvider({ children }: { children: React.ReactNode }) {
     deleteDocument,
     processText,
     loadDocuments,
+    sidebarExpanded,
+    setSidebarExpanded,
   };
 
   return <ToolContext.Provider value={value}>{children}</ToolContext.Provider>;

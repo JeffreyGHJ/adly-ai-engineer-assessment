@@ -17,6 +17,7 @@ import {
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import { useAuth } from "../context/AuthContext";
+import { cn } from "../lib/utils";
 
 interface CreditPack {
   name: string;
@@ -38,6 +39,8 @@ const BillingPage = () => {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [selectedPack, setSelectedPack] = useState(creditPacks[0]);
+  const [processingPack, setProcessingPack] = useState(false);
 
   const plans = [
     {
@@ -132,6 +135,7 @@ const BillingPage = () => {
 
   const handlePurchaseCredits = async (pack: CreditPack) => {
     if (!user) return;
+    setProcessingPack(true);
 
     const newCredits = user.credits + pack.credits;
     const newMaxCredits = Math.max(user.max_credits, newCredits);
@@ -141,10 +145,16 @@ const BillingPage = () => {
         credits: newCredits,
         max_credits: newMaxCredits,
       });
-      alert(`Successfully purchased ${pack.credits} credits!`);
+      setTimeout(() => {
+        alert(`Successfully purchased ${pack.credits} credits!`);
+        setProcessingPack(false);
+      }, 2000);
     } catch (error) {
-      console.error("Error purchasing credits:", error);
-      alert("Failed to purchase credits. Please try again.");
+      setTimeout(() => {
+        console.error("Error purchasing credits:", error);
+        alert("Failed to purchase credits. Please try again.");
+        setProcessingPack(false);
+      }, 2000);
     }
   };
 
@@ -159,14 +169,14 @@ const BillingPage = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>Choose Your Plan</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2">
                 {plans.map((plan) => (
                   <motion.div
                     key={plan.id}
@@ -178,25 +188,25 @@ const BillingPage = () => {
                     }`}
                     onClick={() => handlePlanSelect(plan.id as any)}
                   >
-                    <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="font-semibold text-lg">{plan.name}</h3>
+                        <h3 className="text-lg font-semibold">{plan.name}</h3>
                         <p className="text-gray-500">{plan.price}/month</p>
                       </div>
                       {selectedPlan === plan.id && (
                         <CheckCircle className="text-indigo-500" size={20} />
                       )}
                     </div>
-                    <p className="text-sm font-medium mb-2">
+                    <p className="mb-2 text-sm font-medium">
                       {plan.credits} credits/month
                     </p>
                     <ul className="space-y-1">
                       {plan.features.map((feature, index) => (
                         <li
                           key={index}
-                          className="text-sm text-gray-600 flex items-start"
+                          className="flex items-start text-sm text-gray-600"
                         >
-                          <span className="text-green-500 mr-2">✓</span>
+                          <span className="mr-2 text-green-500">✓</span>
                           {feature}
                         </li>
                       ))}
@@ -206,14 +216,14 @@ const BillingPage = () => {
               </div>
 
               {user?.plan && (
-                <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                  <h3 className="font-medium mb-2">
+                <div className="p-4 mb-6 rounded-lg bg-gray-50">
+                  <h3 className="mb-2 font-medium">
                     Current Plan: {plans.find((p) => p.id === user.plan)?.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="mb-2 text-sm text-gray-600">
                     Credits: {user.credits} / {user.max_credits}
                   </p>
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-4">
+                  <div className="w-full h-2 mb-4 overflow-hidden bg-gray-200 rounded-full">
                     <div
                       className="h-full bg-indigo-500 rounded-full"
                       style={{
@@ -232,12 +242,12 @@ const BillingPage = () => {
 
               {showPaymentForm && (
                 <div>
-                  <h3 className="font-semibold text-lg mb-4">
+                  <h3 className="mb-4 text-lg font-semibold">
                     Payment Information
                   </h3>
 
                   {success ? (
-                    <div className="bg-green-50 text-green-700 p-4 rounded-lg flex items-center">
+                    <div className="flex items-center p-4 text-green-700 rounded-lg bg-green-50">
                       <CheckCircle className="mr-2" size={20} />
                       Payment successful! Your plan has been updated.
                     </div>
@@ -278,8 +288,8 @@ const BillingPage = () => {
                           />
                         </div>
 
-                        <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                          <h4 className="font-medium mb-2">Order Summary</h4>
+                        <div className="p-4 mb-4 rounded-lg bg-gray-50">
+                          <h4 className="mb-2 font-medium">Order Summary</h4>
                           <div className="flex justify-between mb-2">
                             <span className="text-gray-600">
                               {plans.find((p) => p.id === selectedPlan)?.name}{" "}
@@ -290,7 +300,7 @@ const BillingPage = () => {
                               /month
                             </span>
                           </div>
-                          <div className="border-t border-gray-200 my-2 pt-2 flex justify-between font-medium">
+                          <div className="flex justify-between pt-2 my-2 font-medium border-t border-gray-200">
                             <span>Total</span>
                             <span>
                               {plans.find((p) => p.id === selectedPlan)?.price}
@@ -326,7 +336,7 @@ const BillingPage = () => {
               <CardTitle>Additional Credits</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4">
+              <p className="mb-4 text-gray-600">
                 Need more credits without changing your plan? Purchase
                 additional credit packs.
               </p>
@@ -335,13 +345,16 @@ const BillingPage = () => {
                 {creditPacks.map((pack, index) => (
                   <motion.div
                     key={index}
-                    className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 cursor-pointer"
+                    className={cn(
+                      "p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-indigo-300",
+                      selectedPack.name === pack.name && "border-indigo-300 "
+                    )}
                     whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                    onClick={() => handlePurchaseCredits(pack)}
+                    onClick={() => setSelectedPack(pack)}
                   >
                     <div className="flex justify-between mb-2">
                       <h4 className="font-medium">{pack.name}</h4>
-                      <span className="text-indigo-600 font-semibold">
+                      <span className="font-semibold text-indigo-600">
                         {pack.price}
                       </span>
                     </div>
@@ -351,6 +364,19 @@ const BillingPage = () => {
                   </motion.div>
                 ))}
               </div>
+
+              <Button
+                variant="outline"
+                className="mt-4"
+                isLoading={processingPack}
+                fullWidth
+                leftIcon={<CreditCard size={18} />}
+                onClick={() => handlePurchaseCredits(selectedPack)}
+              >
+                {processingPack
+                  ? "Processing..."
+                  : `Purchase ${selectedPack.credits} Credits`}
+              </Button>
             </CardContent>
           </Card>
 
@@ -360,8 +386,8 @@ const BillingPage = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="border border-gray-200 rounded-lg p-3 flex items-center">
-                  <div className="bg-gray-100 p-2 rounded-md mr-3">
+                <div className="flex items-center p-3 border border-gray-200 rounded-lg">
+                  <div className="p-2 mr-3 bg-gray-100 rounded-md">
                     <CreditCard size={18} className="text-gray-700" />
                   </div>
                   <div>

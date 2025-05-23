@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   BarChart2,
   FileText,
@@ -24,8 +24,8 @@ import { useTool } from "../context/ToolContext";
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const { documents, setCurrentTool } = useTool();
-
+  const { documents, setCurrentTool, setCurrentDocument } = useTool();
+  const navigate = useNavigate();
   const recentDocuments = documents.slice(0, 5);
 
   // Mock stats for demonstration
@@ -222,40 +222,48 @@ const DashboardPage = () => {
             <CardContent>
               {recentDocuments.length > 0 ? (
                 <div className="space-y-4">
-                  {recentDocuments.map((doc, index) => (
-                    <div
-                      key={doc.id + ":" + index}
-                      className="flex items-center justify-between p-3 rounded-md bg-gray-50"
-                    >
-                      <div className="flex items-center">
-                        <div className="p-2 mr-3 bg-gray-100 rounded-md">
-                          {doc.toolType === "humanizer" && (
-                            <Type size={16} className="text-indigo-600" />
-                          )}
-                          {doc.toolType === "plagiarism" && (
-                            <Search size={16} className="text-purple-600" />
-                          )}
-                          {doc.toolType === "ai-detector" && (
-                            <Bot size={16} className="text-green-600" />
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">
-                            {doc.title}
-                          </h4>
-                          <div className="flex items-center text-xs text-gray-500">
-                            <Clock size={12} className="mr-1" />
-                            {new Date(doc.lastModified).toLocaleDateString()}
+                  {recentDocuments.map((doc, index) => {
+                    return (
+                      <div
+                        key={doc.id + ":" + index}
+                        className="flex items-center justify-between p-3 rounded-md bg-gray-50"
+                      >
+                        <div className="flex items-center">
+                          <div className="p-2 mr-3 bg-gray-100 rounded-md">
+                            {doc.toolType === "humanizer" && (
+                              <Type size={16} className="text-indigo-600" />
+                            )}
+                            {doc.toolType === "plagiarism" && (
+                              <Search size={16} className="text-purple-600" />
+                            )}
+                            {doc.toolType === "ai-detector" && (
+                              <Bot size={16} className="text-green-600" />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">
+                              {doc.title}
+                            </h4>
+                            <div className="flex items-center text-xs text-gray-500">
+                              <Clock size={12} className="mr-1" />
+                              {new Date(doc.lastModified).toLocaleDateString()}
+                            </div>
                           </div>
                         </div>
+                        <Link
+                          to="/tools"
+                          onClick={() => {
+                            setCurrentTool(doc.toolType);
+                            setCurrentDocument(doc);
+                          }}
+                        >
+                          <Button size="sm" variant="ghost">
+                            View
+                          </Button>
+                        </Link>
                       </div>
-                      <Link to="/documents">
-                        <Button size="sm" variant="ghost">
-                          View
-                        </Button>
-                      </Link>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="py-8 text-center">
@@ -290,6 +298,8 @@ const DashboardPage = () => {
                   className="flex items-center justify-between w-full p-4 text-indigo-700 transition-colors rounded-lg bg-indigo-50 hover:bg-indigo-100"
                   onClick={() => {
                     setCurrentTool("humanizer");
+                    setCurrentDocument(null);
+                    navigate("/tools");
                   }}
                 >
                   <div className="flex items-center">
@@ -303,6 +313,8 @@ const DashboardPage = () => {
                   className="flex items-center justify-between w-full p-4 text-purple-700 transition-colors rounded-lg bg-purple-50 hover:bg-purple-100"
                   onClick={() => {
                     setCurrentTool("plagiarism");
+                    setCurrentDocument(null);
+                    navigate("/tools");
                   }}
                 >
                   <div className="flex items-center">
@@ -316,6 +328,8 @@ const DashboardPage = () => {
                   className="flex items-center justify-between w-full p-4 text-green-700 transition-colors rounded-lg bg-green-50 hover:bg-green-100"
                   onClick={() => {
                     setCurrentTool("ai-detector");
+                    setCurrentDocument(null);
+                    navigate("/tools");
                   }}
                 >
                   <div className="flex items-center">

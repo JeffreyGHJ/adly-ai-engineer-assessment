@@ -22,6 +22,7 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
+  deleteUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,6 +57,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setUserData = async (session: any) => {
+    const profile = await fetchUserProfile(session.user.id);
+
+    if (profile) {
+      setUser({
+        id: session.user.id,
+        name: session.user.email?.split("@")[0] || "User",
+        email: session.user.email || "",
+        plan: profile.plan,
+        credits: profile.credits,
+        max_credits: profile.max_credits,
+        humanizer_count: profile.humanizer_count,
+        ai_detector_count: profile.ai_detector_count,
+        plagiarism_count: profile.plagiarism_count,
+      });
+    } else {
+      setUser(createUserProfile(session.user));
+    }
+  };
+
   useEffect(() => {
     // Check active session
     const initializeAuth = async () => {
@@ -78,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        setUser(createUserProfile(session.user));
+        setUserData(session);
       } else {
         setUser(null);
       }
@@ -174,6 +196,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // SUPABASE DOES NOT MAKE THIS EASY :(
+  const deleteUser = async () => {
+    if (!user) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to delete your account? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+    try {
+      // Delete from profiles table
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
+      // Delete from Auth
+      const { error: authError } = await supabase.auth.admin.deleteUser(
+        user.id
+      );
+      if (authError) throw authError;
+
+      setUser(null);
+    } catch (error) {
+      console.error("Delete user error:", error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     isAuthenticated: !!user,
@@ -182,6 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signup,
     logout,
     updateUser,
+    deleteUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
