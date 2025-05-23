@@ -212,8 +212,8 @@ const Sidebar = () => {
       <div className="p-4 border-t border-gray-200">
         <Button
           variant="ghost"
-          className="justify-start w-full px-4"
-          leftIcon={<LogOut size={20} className="flex-shrink-0" />}
+          className={cn("justify-start w-full", isExpanded ? "px-4" : "px-2")}
+          leftIcon={<LogOut size={20} className={"flex-shrink-0"} />}
           onClick={handleLogout}
         >
           {isExpanded && "Logout"}
