@@ -17,6 +17,7 @@ import PricingPage from "./pages/PricingPage";
 import BillingPage from "./pages/BillingPage";
 import ContactPage from "./pages/ContactPage";
 import DocumentsPage from "./pages/DocumentsPage";
+import UsagePage from "./pages/UsagePage";
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -60,7 +61,6 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public routes */}
-
       <Route
         path="/login"
         element={
@@ -106,6 +106,14 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/usage"
+          element={
+            <ProtectedRoute>
+              <UsagePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/billing"
           element={
             <ProtectedRoute>
@@ -135,4 +143,4 @@ function App() {
   );
 }
 
-export default App;
+export default App

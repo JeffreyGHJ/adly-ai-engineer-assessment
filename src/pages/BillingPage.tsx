@@ -18,6 +18,18 @@ import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import { useAuth } from "../context/AuthContext";
 
+interface CreditPack {
+  name: string;
+  credits: number;
+  price: string;
+}
+
+const creditPacks: CreditPack[] = [
+  { name: "Small Pack", credits: 100, price: "$4.99" },
+  { name: "Medium Pack", credits: 250, price: "$9.99" },
+  { name: "Large Pack", credits: 600, price: "$19.99" },
+];
+
 const BillingPage = () => {
   const { user, updateUser } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<
@@ -116,6 +128,24 @@ const BillingPage = () => {
         setShowPaymentForm(false);
       }, 3000);
     }, 2000);
+  };
+
+  const handlePurchaseCredits = async (pack: CreditPack) => {
+    if (!user) return;
+
+    const newCredits = user.credits + pack.credits;
+    const newMaxCredits = Math.max(user.max_credits, newCredits);
+
+    try {
+      await updateUser({
+        credits: newCredits,
+        max_credits: newMaxCredits,
+      });
+      alert(`Successfully purchased ${pack.credits} credits!`);
+    } catch (error) {
+      console.error("Error purchasing credits:", error);
+      alert("Failed to purchase credits. Please try again.");
+    }
   };
 
   return (
@@ -302,56 +332,25 @@ const BillingPage = () => {
               </p>
 
               <div className="space-y-3">
-                <motion.div
-                  className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 cursor-pointer"
-                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                >
-                  <div className="flex justify-between mb-2">
-                    <h4 className="font-medium">Small Pack</h4>
-                    <span className="text-indigo-600 font-semibold">$4.99</span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    100 additional credits
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 cursor-pointer"
-                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                >
-                  <div className="flex justify-between mb-2">
-                    <h4 className="font-medium">Medium Pack</h4>
-                    <span className="text-indigo-600 font-semibold">$9.99</span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    250 additional credits
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 cursor-pointer"
-                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                >
-                  <div className="flex justify-between mb-2">
-                    <h4 className="font-medium">Large Pack</h4>
-                    <span className="text-indigo-600 font-semibold">
-                      $19.99
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    600 additional credits
-                  </p>
-                </motion.div>
+                {creditPacks.map((pack, index) => (
+                  <motion.div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 cursor-pointer"
+                    whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                    onClick={() => handlePurchaseCredits(pack)}
+                  >
+                    <div className="flex justify-between mb-2">
+                      <h4 className="font-medium">{pack.name}</h4>
+                      <span className="text-indigo-600 font-semibold">
+                        {pack.price}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {pack.credits} additional credits
+                    </p>
+                  </motion.div>
+                ))}
               </div>
-
-              <Button
-                variant="outline"
-                className="mt-4"
-                fullWidth
-                leftIcon={<CreditCard size={18} />}
-              >
-                Purchase Credits
-              </Button>
             </CardContent>
           </Card>
 

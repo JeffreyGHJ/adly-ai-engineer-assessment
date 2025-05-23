@@ -7,7 +7,7 @@ import {
   Search,
   Bot,
   Trash2,
-  Edit,
+  Eye,
   Plus,
   Filter,
   SortDesc,
@@ -26,7 +26,7 @@ import { useTool } from "../context/ToolContext";
 import { truncateText } from "../lib/utils";
 
 const DocumentsPage = () => {
-  const { documents, deleteDocument, setCurrentTool, loadDocuments } =
+  const { documents, deleteDocument, setCurrentTool, loadDocuments, setCurrentDocument } =
     useTool();
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<
@@ -93,6 +93,12 @@ const DocumentsPage = () => {
         alert("Failed to delete document. Please try again.");
       }
     }
+  };
+
+  const handleView = (doc: any) => {
+    setCurrentDocument(doc);
+    setCurrentTool(doc.toolType);
+    navigate("/tools");
   };
 
   const handleCreateDocument = () => {
@@ -226,9 +232,10 @@ const DocumentsPage = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        leftIcon={<Edit size={16} />}
+                        leftIcon={<Eye size={16} />}
+                        onClick={() => handleView(doc)}
                       >
-                        Edit
+                        View
                       </Button>
                       <Button
                         variant="outline"

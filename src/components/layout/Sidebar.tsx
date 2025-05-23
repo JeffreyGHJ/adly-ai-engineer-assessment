@@ -189,12 +189,12 @@ const Sidebar = () => {
               Account
             </p>
           )}
-          {/* <NavItem
+          <NavItem
             to="/usage"
             icon={<BarChart2 size={20} className="flex-shrink-0"/>}
             label="Usage"
             isExpanded={isExpanded}
-          /> */}
+          />
           <NavItem
             to="/billing"
             icon={<CreditCard size={20} className="flex-shrink-0" />}
@@ -239,4 +239,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default Sidebar
