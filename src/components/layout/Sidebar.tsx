@@ -50,7 +50,7 @@ const NavItem = ({ to, icon, label, isExpanded, onClick }: NavItemProps) => (
 );
 
 const Sidebar = () => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { logout } = useAuth();
   const {
     currentTool,
