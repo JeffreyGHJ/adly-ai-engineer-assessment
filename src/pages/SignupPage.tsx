@@ -96,7 +96,7 @@ const SignupPage = () => {
             />
 
             <Input
-              label="Email address"
+              label="Email address (make one up)"
               type="email"
               id="email"
               value={email}

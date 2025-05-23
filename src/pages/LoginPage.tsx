@@ -7,7 +7,7 @@ import Button from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 
 const LoginPage = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -20,18 +20,18 @@ const LoginPage = () => {
     setError("");
     setIsLoading(true);
 
-    if (!username || !password) {
-      setError("Please enter both username and password");
+    if (!email || !password) {
+      setError("Please enter both email and password");
       setIsLoading(false);
       return;
     }
 
     try {
-      await login(username, password);
+      await login(email, password);
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
-      setError("Invalid username or password");
+      setError("Invalid email or password");
     } finally {
       setIsLoading(false);
     }
@@ -69,12 +69,12 @@ const LoginPage = () => {
 
           <div className="space-y-4">
             <Input
-              label="username"
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
+              label="Email"
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your Email"
               fullWidth
               leftIcon={<Mail size={18} />}
               required
